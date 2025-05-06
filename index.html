@@ -1,0 +1,70 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agendamento de Reunião com Pais</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f0f4f8;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      box-sizing: border-box;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px;
+      cursor: pointer;
+      border-radius: 5px;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Agende Sua Reunião</h2>
+    <form action="https://formspree.io/f/mjkwwdqw" method="POST">
+      <label for="nome">Nome do Responsável:</label>
+      <input type="text" id="nome" name="nome" required>
+
+      <label for="aluno">Nome do Aluno:</label>
+      <input type="text" id="aluno" name="aluno" required>
+
+      <label for="data">Data desejada:</label>
+      <input type="date" id="data" name="data" required>
+
+      <label for="hora">Horário preferido:</label>
+      <input type="time" id="hora" name="hora" required>
+
+      <label for="contato">E-mail ou Telefone:</label>
+      <input type="text" id="contato" name="contato" required>
+
+      <button type="submit">Enviar Agendamento</button>
+    </form>
+  </div>
+</body>
+</html>
