@@ -46,7 +46,7 @@
 <body>
   <div class="container">
     <h2>Agende Sua Reunião</h2>
-    <form action="https://formspree.io/f/mjkwwdqw" method="POST">
+    <form action="https://formspree.io/f/abc123" method="POST">
       <label for="nome">Nome do Responsável:</label>
       <input type="text" id="nome" name="nome" required>
 
@@ -67,4 +67,57 @@
         <option value="Pré 3 MA - Raissa Manoele Costa Pereira">Pré 3 MA - Raissa Manoele Costa Pereira</option>
         <option value="Pré 3 MB - Valéria Pereira Belisario de Paula">Pré 3 MB - Valéria Pereira Belisario de Paula</option>
         <option value="Pré 3 TA - Heulla Fhernanda Menezes">Pré 3 TA - Heulla Fhernanda Menezes</option>
-        <option value="Pré
+        <option value="Pré 3 TB - Raissa Manoele Costa Pereira">Pré 3 TB - Raissa Manoele Costa Pereira</option>
+        <option value="1º ano MA - Eliane Silva dos Santos Cruz">1º ano MA - Eliane Silva dos Santos Cruz</option>
+        <option value="1º ano MB - Leticia da Silva Pinheiro">1º ano MB - Leticia da Silva Pinheiro</option>
+        <option value="1º ano TA - Eliane Silva dos Santos Cruz">1º ano TA - Eliane Silva dos Santos Cruz</option>
+        <option value="1º ano TB - Leticia da Silva Pinheiro">1º ano TB - Leticia da Silva Pinheiro</option>
+        <option value="1º ano TC - Nadir de Barros">1º ano TC - Nadir de Barros</option>
+      </select>
+
+      <label for="data">Data da Reunião:</label>
+      <input type="text" id="data" name="data" value="14/05/2025" readonly>
+
+      <label for="hora">Horário preferido:</label>
+      <select id="hora" name="hora" required>
+        <option value="">Selecione o horário</option>
+      </select>
+
+      <button type="submit">Enviar Agendamento</button>
+    </form>
+  </div>
+
+  <script>
+    // Função para adicionar horários no select
+    function adicionarHorarios() {
+      const select = document.getElementById('hora');
+      const times = [];
+      let hour = 7;
+      let minute = 10;
+
+      // Gera os horários de 10 em 10 minutos a partir de 07:10 até 10:50
+      while (hour < 11 || (hour === 10 && minute <= 50)) {
+        let hStr = hour.toString().padStart(2, '0');
+        let mStr = minute.toString().padStart(2, '0');
+        times.push(`${hStr}:${mStr}`);
+        minute += 10;
+        if (minute >= 60) {
+          minute = 0;
+          hour++;
+        }
+      }
+
+      // Adiciona as opções de horário no select
+      times.forEach(time => {
+        const option = document.createElement('option');
+        option.value = time;
+        option.textContent = time;
+        select.appendChild(option);
+      });
+    }
+
+    // Chama a função para adicionar os horários assim que a página carregar
+    window.onload = adicionarHorarios;
+  </script>
+</body>
+</html>
