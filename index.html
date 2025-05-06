@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -22,7 +21,7 @@
     h2 {
       text-align: center;
     }
-    input, select, textarea {
+    input, select {
       width: 100%;
       padding: 12px;
       margin: 8px 0;
@@ -47,24 +46,53 @@
 <body>
   <div class="container">
     <h2>Agende Sua Reunião</h2>
-    <form action="https://formspree.io/f/mjkwwdqw" method="POST">
+    <form action="https://formspree.io/f/abc123" method="POST">
       <label for="nome">Nome do Responsável:</label>
       <input type="text" id="nome" name="nome" required>
 
       <label for="aluno">Nome do Aluno:</label>
       <input type="text" id="aluno" name="aluno" required>
 
-      <label for="data">Data desejada:</label>
-      <input type="date" id="data" name="data" required>
+      <label for="turma">Turma:</label>
+      <select id="turma" name="turma" required>
+        <option value="">Selecione a turma</option>
+        <option value="Turma A">Turma A</option>
+        <option value="Turma B">Turma B</option>
+        <option value="Turma C">Turma C</option>
+      </select>
+
+      <label for="data">Data da Reunião:</label>
+      <input type="text" id="data" name="data" value="2025-05-10" readonly>
 
       <label for="hora">Horário preferido:</label>
-      <input type="time" id="hora" name="hora" required>
-
-      <label for="contato">E-mail ou Telefone:</label>
-      <input type="text" id="contato" name="contato" required>
+      <select id="hora" name="hora" required>
+        <!-- Horários de 10 em 10 minutos entre 07:00 e 11:30 -->
+        <option value="">Selecione o horário</option>
+        <!-- Gerado automaticamente com código abaixo -->
+      </select>
 
       <button type="submit">Enviar Agendamento</button>
     </form>
   </div>
+
+  <script>
+    const select = document.getElementById('hora');
+    const startHour = 7;
+    const endHour = 11;
+    const endMinute = 30;
+
+    for (let h = startHour; h <= endHour; h++) {
+      for (let m = 0; m < 60; m += 10) {
+        if (h === endHour && m > endMinute) break;
+        const hour = String(h).padStart(2, '0');
+        const min = String(m).padStart(2, '0');
+        const time = `${hour}:${min}`;
+        const option = document.createElement('option');
+        option.value = time;
+        option.textContent = time;
+        select.appendChild(option);
+      }
+    }
+  </script>
 </body>
 </html>
