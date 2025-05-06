@@ -62,7 +62,7 @@
       </select>
 
       <label for="data">Data da Reunião:</label>
-      <input type="text" id="data" name="data" value="2025-05-10" readonly>
+      <input type="text" id="data" name="data" value="14/05/2025" readonly>
 
       <label for="hora">Horário preferido:</label>
       <select id="hora" name="hora" required>
@@ -78,8 +78,9 @@
   <script>
     const select = document.getElementById('hora');
     const startHour = 7;
-    const endHour = 11;
-    const endMinute = 30;
+    const startMinute = 10;
+    const endHour = 10;
+    const endMinute = 50;
 
     for (let h = startHour; h <= endHour; h++) {
       for (let m = 0; m < 60; m += 10) {
