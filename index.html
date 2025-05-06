@@ -80,26 +80,7 @@
     let hour = 7;
     let minute = 10;
 
+    // Ajusta o horário para começar em 07:10 e continuar até 10:50
     while (!(hour === 10 && minute > 50)) {
-      if (hour === 7 && minute === 0) {
-        minute = 10; // pular 07:00
-      }
       let hStr = hour.toString().padStart(2, '0');
       let mStr = minute.toString().padStart(2, '0');
-      times.push(`${hStr}:${mStr}`);
-      minute += 10;
-      if (minute >= 60) {
-        minute = 0;
-        hour += 1;
-      }
-    }
-
-    times.forEach(time => {
-      const option = document.createElement('option');
-      option.value = time;
-      option.textContent = time;
-      select.appendChild(option);
-    });
-  </script>
-</body>
-</html>
