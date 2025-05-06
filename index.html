@@ -46,7 +46,7 @@
 <body>
   <div class="container">
     <h2>Agende Sua Reunião</h2>
-    <form action="https://formspree.io/f/mjkwwdqw" method="POST">
+    <form action="https://formspree.io/f/abc123" method="POST">
       <label for="nome">Nome do Responsável:</label>
       <input type="text" id="nome" name="nome" required>
 
@@ -81,6 +81,9 @@
     let minute = 10;
 
     while (!(hour === 10 && minute > 50)) {
+      if (hour === 7 && minute === 0) {
+        minute = 10; // pular 07:00
+      }
       let hStr = hour.toString().padStart(2, '0');
       let mStr = minute.toString().padStart(2, '0');
       times.push(`${hStr}:${mStr}`);
