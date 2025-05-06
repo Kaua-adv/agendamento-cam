@@ -66,9 +66,7 @@
 
       <label for="hora">Horário preferido:</label>
       <select id="hora" name="hora" required>
-        <!-- Horários de 10 em 10 minutos entre 07:00 e 11:30 -->
         <option value="">Selecione o horário</option>
-        <!-- Gerado automaticamente com código abaixo -->
       </select>
 
       <button type="submit">Enviar Agendamento</button>
@@ -77,23 +75,28 @@
 
   <script>
     const select = document.getElementById('hora');
-    const startHour = 7;
-    const startMinute = 10;
-    const endHour = 10;
-    const endMinute = 50;
+    const times = [];
 
-    for (let h = startHour; h <= endHour; h++) {
-      for (let m = 0; m < 60; m += 10) {
-        if (h === endHour && m > endMinute) break;
-        const hour = String(h).padStart(2, '0');
-        const min = String(m).padStart(2, '0');
-        const time = `${hour}:${min}`;
-        const option = document.createElement('option');
-        option.value = time;
-        option.textContent = time;
-        select.appendChild(option);
+    let hour = 7;
+    let minute = 10;
+
+    while (!(hour === 10 && minute > 50)) {
+      let hStr = hour.toString().padStart(2, '0');
+      let mStr = minute.toString().padStart(2, '0');
+      times.push(`${hStr}:${mStr}`);
+      minute += 10;
+      if (minute >= 60) {
+        minute = 0;
+        hour += 1;
       }
     }
+
+    times.forEach(time => {
+      const option = document.createElement('option');
+      option.value = time;
+      option.textContent = time;
+      select.appendChild(option);
+    });
   </script>
 </body>
 </html>
