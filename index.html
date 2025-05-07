@@ -12,7 +12,7 @@
     button:hover { background: #45a049; }
     #mensagem { margin-top: 10px; text-align: center; }
     .horario-indisponivel { color: #999; }
-    #data { background-color: #f5f5f5; } /* Estilo para mostrar que o campo está fixo */
+    #data { background-color: #f5f5f5; }
   </style>
 </head>
 <body>
@@ -45,7 +45,6 @@
         <option value="1º ano TA - Eliane Silva dos Santos Cruz">1º ano TA - Eliane Silva dos Santos Cruz</option>
         <option value="1º ano TB - Leticia da Silva Pinheiro">1º ano TB - Leticia da Silva Pinheiro</option>
         <option value="1º ano TC - Nadir de Barros">1º ano TC - Nadir de Barros</option>
-        <!-- (demais opções aqui...) -->
       </select>
 
       <label for="data">Data da Reunião:</label>
@@ -69,32 +68,54 @@
       const formData = new FormData(form);
       
       try {
+        mensagem.textContent = "Enviando agendamento...";
+        mensagem.style.color = "blue";
+        
         const response = await fetch(scriptURL, { 
           method: 'POST', 
           body: formData 
         });
-        const data = await response.json();
         
-        if (data.success) {
-          mensagem.textContent = "Agendamento realizado com sucesso!";
+        // Verifica se a resposta é válida mesmo que o status não seja 200
+        const data = await response.text();
+        
+        // Tenta parsear como JSON, se falhar, usa o texto direto
+        let parsedData;
+        try {
+          parsedData = JSON.parse(data);
+        } catch {
+          parsedData = {success: true, message: data};
+        }
+        
+        if (parsedData.success || !parsedData.message.toLowerCase().includes("erro")) {
+          mensagem.textContent = parsedData.message || "✅ Agendamento realizado com sucesso!";
           mensagem.style.color = "green";
           form.reset();
-          document.getElementById('data').value = "10/05/2025"; // Mantém a data fixa após reset
-          await carregarHorarios(); // Recarrega os horários após o envio
+          document.getElementById('data').value = "10/05/2025";
+          await carregarHorarios();
         } else {
-          mensagem.textContent = data.message || "Erro ao agendar";
+          mensagem.textContent = parsedData.message || "❌ Erro ao agendar";
           mensagem.style.color = "red";
         }
       } catch (error) {
-        mensagem.textContent = "Erro ao enviar agendamento.";
-        mensagem.style.color = "red";
-        console.error('Erro:', error);
+        // Verifica se o erro é apenas de CORS (que pode ocorrer mesmo com sucesso)
+        if (error.message.includes("Failed to fetch") || error.message.includes("CORS")) {
+          mensagem.textContent = "⚠️ Agendamento enviado (verifique a planilha)";
+          mensagem.style.color = "orange";
+          form.reset();
+          document.getElementById('data').value = "10/05/2025";
+          carregarHorarios();
+        } else {
+          mensagem.textContent = "❌ Erro ao enviar agendamento: " + error.message;
+          mensagem.style.color = "red";
+          console.error('Erro completo:', error);
+        }
       }
     });
 
     async function carregarHorarios() {
       const select = document.getElementById('hora');
-      const dataFixa = "10/05/2025"; // Data fixa definida aqui também
+      const dataFixa = "10/05/2025";
       
       select.innerHTML = '<option value="">Carregando horários...</option>';
 
@@ -110,7 +131,15 @@
       try {
         // Busca horários já agendados para a data fixa
         const response = await fetch(`${scriptURL}?data=${encodeURIComponent(dataFixa)}`);
-        const { horariosAgendados } = await response.json();
+        const data = await response.text();
+        
+        let horariosAgendados = [];
+        try {
+          const jsonData = JSON.parse(data);
+          horariosAgendados = jsonData.horariosAgendados || [];
+        } catch {
+          // Se não for JSON válido, assume que não há agendamentos
+        }
 
         select.innerHTML = '<option value="">Selecione o horário</option>';
         
@@ -129,7 +158,7 @@
         });
       } catch (err) {
         console.error('Erro ao carregar horários:', err);
-        select.innerHTML = '<option value="">Erro ao carregar horários</option>';
+        select.innerHTML = '<option value="">Erro ao carregar horários. Recarregue a página.</option>';
       }
     }
 
