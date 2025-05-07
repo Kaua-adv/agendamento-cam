@@ -11,6 +11,7 @@
     button { background: #4CAF50; color: white; border: none; cursor: pointer; }
     button:hover { background: #45a049; }
     #mensagem { margin-top: 10px; text-align: center; }
+    .horario-indisponivel { color: #999; }
   </style>
 </head>
 <body>
@@ -43,11 +44,10 @@
         <option value="1º ano TA - Eliane Silva dos Santos Cruz">1º ano TA - Eliane Silva dos Santos Cruz</option>
         <option value="1º ano TB - Leticia da Silva Pinheiro">1º ano TB - Leticia da Silva Pinheiro</option>
         <option value="1º ano TC - Nadir de Barros">1º ano TC - Nadir de Barros</option>
-        <!-- (demais opções aqui...) -->
       </select>
 
       <label for="data">Data da Reunião:</label>
-      <input type="text" id="data" name="data" value="14/05/2025" readonly>
+      <input type="date" id="data" name="data" required>
 
       <label for="hora">Horário preferido:</label>
       <select id="hora" name="hora" required></select>
@@ -62,27 +62,51 @@
     const mensagem = document.getElementById('mensagem');
     const scriptURL = "https://script.google.com/macros/s/AKfycbxDqszuYAOMPlatE8roRhm4AKcA5MGQaL3HLJZ8LLJjAQxii50ijrz0C_qkRR-b3gZIKA/exec";
 
-    form.addEventListener('submit', e => {
+    // Configura a data mínima como hoje
+    document.getElementById('data').min = new Date().toISOString().split('T')[0];
+
+    // Carrega horários quando a data muda
+    document.getElementById('data').addEventListener('change', carregarHorarios);
+
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const formData = new FormData(form);
-
-      fetch(scriptURL, { method: 'POST', body: formData })
-        .then(response => response.text())
-        .then(data => {
-          mensagem.textContent = data;
-          form.reset();
-          carregarHorarios(); // <- recarrega os horários após o envio
-        })
-        .catch(error => {
-          mensagem.textContent = "Erro ao enviar agendamento.";
-          console.error('Erro:', error);
+      
+      try {
+        const response = await fetch(scriptURL, { 
+          method: 'POST', 
+          body: formData 
         });
+        const data = await response.json();
+        
+        if (data.success) {
+          mensagem.textContent = "Agendamento realizado com sucesso!";
+          mensagem.style.color = "green";
+          form.reset();
+          await carregarHorarios(); // Recarrega os horários após o envio
+        } else {
+          mensagem.textContent = data.message || "Erro ao agendar";
+          mensagem.style.color = "red";
+        }
+      } catch (error) {
+        mensagem.textContent = "Erro ao enviar agendamento.";
+        mensagem.style.color = "red";
+        console.error('Erro:', error);
+      }
     });
 
     async function carregarHorarios() {
       const select = document.getElementById('hora');
+      const dataSelecionada = document.getElementById('data').value;
+      
+      if (!dataSelecionada) {
+        select.innerHTML = '<option value="">Selecione uma data primeiro</option>';
+        return;
+      }
+
       select.innerHTML = '<option value="">Carregando horários...</option>';
 
+      // Gera todos os horários possíveis
       const horariosPossiveis = [];
       let h = 7, m = 10;
       while (h < 11 || (h === 10 && m <= 50)) {
@@ -92,15 +116,19 @@
       }
 
       try {
-        const res = await fetch(scriptURL);
-        const agendados = await res.json();
+        // Busca horários já agendados para a data selecionada
+        const response = await fetch(`${scriptURL}?data=${encodeURIComponent(dataSelecionada)}`);
+        const { horariosAgendados } = await response.json();
 
         select.innerHTML = '<option value="">Selecione o horário</option>';
+        
         horariosPossiveis.forEach(horario => {
           const option = document.createElement('option');
-          if (agendados.includes(horario)) {
-            option.textContent = horario + " (indisponível)";
+          if (horariosAgendados && horariosAgendados.includes(horario)) {
+            option.value = "";
+            option.textContent = `${horario} (indisponível)`;
             option.disabled = true;
+            option.classList.add('horario-indisponivel');
           } else {
             option.value = horario;
             option.textContent = horario;
@@ -108,11 +136,17 @@
           select.appendChild(option);
         });
       } catch (err) {
-        select.innerHTML = '<option>Erro ao carregar horários</option>';
+        console.error('Erro ao carregar horários:', err);
+        select.innerHTML = '<option value="">Erro ao carregar horários</option>';
       }
     }
 
-    window.onload = carregarHorarios;
+    // Carrega horários ao carregar a página se já houver data selecionada
+    window.addEventListener('DOMContentLoaded', () => {
+      if (document.getElementById('data').value) {
+        carregarHorarios();
+      }
+    });
   </script>
 </body>
 </html>
