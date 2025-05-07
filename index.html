@@ -26,7 +26,7 @@
       <label for="turma">Turma:</label>
       <select id="turma" name="turma" required>
         <option value="">Selecione a turma</option>
-       <option value="Maternal MA - Marilene Soares da Silva Rosa">Maternal MA - Marilene Soares da Silva Rosa</option>
+        <option value="Maternal MA - Marilene Soares da Silva Rosa">Maternal MA - Marilene Soares da Silva Rosa</option>
         <option value="Maternal TA - Tatiane Maria Souza da Costa">Maternal TA - Tatiane Maria Souza da Costa</option>
         <option value="Pré 1 MA - Josiele da Costa de Souza">Pré 1 MA - Josiele da Costa de Souza</option>
         <option value="Pré 1 TA - Josiele da Costa de Souza">Pré 1 TA - Josiele da Costa de Souza</option>
@@ -43,7 +43,6 @@
         <option value="1º ano TA - Eliane Silva dos Santos Cruz">1º ano TA - Eliane Silva dos Santos Cruz</option>
         <option value="1º ano TB - Leticia da Silva Pinheiro">1º ano TB - Leticia da Silva Pinheiro</option>
         <option value="1º ano TC - Nadir de Barros">1º ano TC - Nadir de Barros</option>
-        <!-- Adicione outras opções conforme necessário -->
       </select>
 
       <label for="data">Data da Reunião:</label>
@@ -62,7 +61,7 @@
     const mensagem = document.getElementById('mensagem');
 
     // URL do seu Apps Script
-    const scriptURL = "https://script.google.com/macros/s/AKfycbzJ-ZYZgROVOPs-chY0Sr-_QJOD4fQXOxOUGLyJJlCf-E8DtqczICRmejndxfTY8b_dnA/exec";
+    const scriptURL = "https://script.google.com/macros/s/AKfycbxooayKGHF2qFXwPqKShZs-ukugHs52OV1u0EbmyvOEL6_Y_9QX_DeBTVP2TlWVg7qb5g/exec";
 
     form.addEventListener('submit', e => {
       e.preventDefault();
@@ -73,6 +72,7 @@
         .then(data => {
           mensagem.textContent = data;
           form.reset();
+          carregarHorarios(); // Atualiza a lista de horários após o envio
         })
         .catch(error => {
           mensagem.textContent = "Erro ao enviar agendamento.";
@@ -80,7 +80,6 @@
         });
     });
 
-    // Preencher horários disponíveis
     async function carregarHorarios() {
       const select = document.getElementById('hora');
       select.innerHTML = '<option value="">Carregando horários...</option>';
@@ -103,6 +102,8 @@
           if (agendados.includes(horario)) {
             option.textContent = horario + " (indisponível)";
             option.disabled = true;
+            option.style.textDecoration = "line-through";
+            option.style.color = "gray";
           } else {
             option.value = horario;
             option.textContent = horario;
@@ -111,6 +112,7 @@
         });
       } catch (err) {
         select.innerHTML = '<option>Erro ao carregar horários</option>';
+        console.error('Erro ao buscar horários:', err);
       }
     }
 
