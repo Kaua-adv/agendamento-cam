@@ -46,7 +46,7 @@
 <body>
   <div class="container">
     <h2>Agende Sua Reunião</h2>
-    <form id="agendamentoForm" action="https://script.google.com/macros/s/AKfycbxUYFiO6IjwXrBHoqTrHnP1xvcjGglHaM5Zb9x9W2QhmU7GJQvSV831INj79Oto6cEjzA/exec" method="POST">
+    <form id="agendamentoForm" action="https://script.google.com/macros/s/AKfycbyScvkqWmZa7fDVXqxuUX-pqNL5WHR1LM31vKIMRIZaHziM6TdKBIhMuu8F3sTqwxvJJA/exec" method="POST">
       <label for="nome">Nome do Responsável:</label>
       <input type="text" id="nome" name="nome" required>
 
@@ -118,7 +118,7 @@
 
     // Função para buscar horários agendados e removê-los do seletor
     function buscarHorariosAgendados() {
-      fetch('https://script.google.com/macros/s/AKfycbxUYFiO6IjwXrBHoqTrHnP1xvcjGglHaM5Zb9x9W2QhmU7GJQvSV831INj79Oto6cEjzA/exec')
+      fetch('https://script.google.com/macros/s/AKfycbyScvkqWmZa7fDVXqxuUX-pqNL5WHR1LM31vKIMRIZaHziM6TdKBIhMuu8F3sTqwxvJJA/exec')
         .then(response => response.json())
         .then(data => {
           const select = document.getElementById('hora');
