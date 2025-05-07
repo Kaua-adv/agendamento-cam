@@ -2,20 +2,51 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Agendamento de Reunião com Pais</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agendamento de Reunião com Pais</title>
   <style>
-    body { font-family: Arial; background: #f4f4f4; padding: 20px; }
-    .container { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    input, select, button { width: 100%; padding: 10px; margin-top: 10px; border-radius: 5px; border: 1px solid #ccc; }
-    button { background: #4CAF50; color: white; border: none; cursor: pointer; }
-    button:hover { background: #45a049; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f0f4f8;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      box-sizing: border-box;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px;
+      cursor: pointer;
+      border-radius: 5px;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Agende Sua Reunião</h2>
-    <form action="https://script.google.com/macros/s/AKfycbxpiNzF9p6gWoYTPpAu9jGaM9UO0TPY7vON-lHxGnZibsyH4mK8LWuyZRktG1eaQNn09w/exec" method="POST">
+    <form id="agendamentoForm" action="https://script.google.com/macros/s/AKfycbxpiNzF9p6gWoYTPpAu9jGaM9UO0TPY7vON-lHxGnZibsyH4mK8LWuyZRktG1eaQNn09w/exec" method="POST">
       <label for="nome">Nome do Responsável:</label>
       <input type="text" id="nome" name="nome" required>
 
@@ -23,7 +54,7 @@
       <input type="text" id="aluno" name="aluno" required>
 
       <label for="turma">Turma:</label>
-      <select id="turma" name="turma" required onchange="carregarHorarios()">
+      <select id="turma" name="turma" required>
         <option value="">Selecione a turma</option>
         <option value="Maternal MA - Marilene Soares da Silva Rosa">Maternal MA - Marilene Soares da Silva Rosa</option>
         <option value="Maternal TA - Tatiane Maria Souza da Costa">Maternal TA - Tatiane Maria Souza da Costa</option>
@@ -47,65 +78,69 @@
       <label for="data">Data da Reunião:</label>
       <input type="text" id="data" name="data" value="14/05/2025" readonly>
 
-      <label for="hora">Horário:</label>
+      <label for="hora">Horário preferido:</label>
       <select id="hora" name="hora" required>
-        <option value="">Selecione a turma primeiro</option>
+        <option value="">Selecione o horário</option>
       </select>
 
-      <button type="submit">Enviar</button>
+      <button type="submit">Enviar Agendamento</button>
     </form>
   </div>
 
   <script>
-    const URL_API = "https://script.google.com/macros/s/AKfycbxpiNzF9p6gWoYTPpAu9jGaM9UO0TPY7vON-lHxGnZibsyH4mK8LWuyZRktG1eaQNn09w/exec";
+    // Função para adicionar horários no select
+    function adicionarHorarios() {
+      const select = document.getElementById('hora');
+      const times = [];
+      let hour = 7;
+      let minute = 10;
 
-    function gerarHorarios() {
-      const horarios = [];
-      let h = 7, m = 10;
-      while (h < 11 || (h === 10 && m <= 50)) {
-        horarios.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
-        m += 10;
-        if (m >= 60) { m = 0; h++; }
-      }
-      return horarios;
-    }
-
-    async function carregarHorarios() {
-      const selectHora = document.getElementById("hora");
-      selectHora.innerHTML = "<option>Carregando horários...</option>";
-      const turma = document.getElementById("turma").value;
-      const data = document.getElementById("data").value;
-
-      const todosHorarios = gerarHorarios();
-      let ocupados = [];
-
-      try {
-        const res = await fetch(URL_API);
-        const agendados = await res.json();
-        ocupados = agendados
-          .filter(item => item.turma === turma && item.data === data)
-          .map(item => item.hora);
-      } catch (err) {
-        console.error("Erro ao buscar agendamentos:", err);
-      }
-
-      selectHora.innerHTML = '<option value="">Selecione o horário</option>';
-      todosHorarios.forEach(horario => {
-        if (!ocupados.includes(horario)) {
-          const opt = document.createElement("option");
-          opt.value = horario;
-          opt.textContent = horario;
-          selectHora.appendChild(opt);
+      // Gera os horários de 10 em 10 minutos a partir de 07:10 até 10:50
+      while (hour < 11 || (hour === 10 && minute <= 50)) {
+        let hStr = hour.toString().padStart(2, '0');
+        let mStr = minute.toString().padStart(2, '0');
+        times.push(`${hStr}:${mStr}`);
+        minute += 10;
+        if (minute >= 60) {
+          minute = 0;
+          hour++;
         }
-      });
-
-      if (selectHora.options.length === 1) {
-        const opt = document.createElement("option");
-        opt.disabled = true;
-        opt.textContent = "Todos os horários estão ocupados.";
-        selectHora.appendChild(opt);
       }
+
+      // Adiciona as opções de horário no select
+      times.forEach(time => {
+        const option = document.createElement('option');
+        option.value = time;
+        option.textContent = time;
+        select.appendChild(option);
+      });
     }
+
+    // Função para buscar horários agendados e removê-los do seletor
+    function buscarHorariosAgendados() {
+      fetch('https://script.google.com/macros/s/AKfycbxpiNzF9p6gWoYTPpAu9jGaM9UO0TPY7vON-lHxGnZibsyH4mK8LWuyZRktG1eaQNn09w/exec')
+        .then(response => response.json())
+        .then(data => {
+          const select = document.getElementById('hora');
+          const options = select.getElementsByTagName('option');
+
+          // Remove as opções de horários já agendados
+          for (let i = options.length - 1; i >= 0; i--) {
+            for (let j = 0; j < data.length; j++) {
+              if (options[i].value === data[j].hora && data[j].data === "14/05/2025") {
+                select.removeChild(options[i]);
+              }
+            }
+          }
+        })
+        .catch(error => console.error('Erro ao buscar horários:', error));
+    }
+
+    // Chama as funções quando a página carregar
+    window.onload = () => {
+      adicionarHorarios();
+      buscarHorariosAgendados();
+    };
   </script>
 </body>
 </html>
