@@ -28,23 +28,6 @@
       <label for="turma">Turma:</label>
       <select id="turma" name="turma" required>
         <option value="">Selecione a turma</option>
-        <option value="Maternal MA - Marilene Soares da Silva Rosa">Maternal MA - Marilene Soares da Silva Rosa</option>
-        <option value="Maternal TA - Tatiane Maria Souza da Costa">Maternal TA - Tatiane Maria Souza da Costa</option>
-        <option value="Pré 1 MA - Josiele da Costa de Souza">Pré 1 MA - Josiele da Costa de Souza</option>
-        <option value="Pré 1 TA - Josiele da Costa de Souza">Pré 1 TA - Josiele da Costa de Souza</option>
-        <option value="Pré 1 TB - Rosane Ambrósio de Oliveira dos Santos">Pré 1 TB - Rosane Ambrósio de Oliveira dos Santos</option>
-        <option value="Pré 2 MA - Maria Letícia Sousa de Araújo">Pré 2 MA - Maria Letícia Sousa de Araújo</option>
-        <option value="Pré 2 TA - Maria Letícia Sousa de Araújo">Pré 2 TA - Maria Letícia Sousa de Araújo</option>
-        <option value="Pré 2 TB - Valéria Pereira Belisario de Paula">Pré 2 TB - Valéria Pereira Belisario de Paula</option>
-        <option value="Pré 3 MA - Raissa Manoele Costa Pereira">Pré 3 MA - Raissa Manoele Costa Pereira</option>
-        <option value="Pré 3 MB - Valéria Pereira Belisario de Paula">Pré 3 MB - Valéria Pereira Belisario de Paula</option>
-        <option value="Pré 3 TA - Heulla Fhernanda Menezes">Pré 3 TA - Heulla Fhernanda Menezes</option>
-        <option value="Pré 3 TB - Raissa Manoele Costa Pereira">Pré 3 TB - Raissa Manoele Costa Pereira</option>
-        <option value="1º ano MA - Eliane Silva dos Santos Cruz">1º ano MA - Eliane Silva dos Santos Cruz</option>
-        <option value="1º ano MB - Leticia da Silva Pinheiro">1º ano MB - Leticia da Silva Pinheiro</option>
-        <option value="1º ano TA - Eliane Silva dos Santos Cruz">1º ano TA - Eliane Silva dos Santos Cruz</option>
-        <option value="1º ano TB - Leticia da Silva Pinheiro">1º ano TB - Leticia da Silva Pinheiro</option>
-        <option value="1º ano TC - Nadir de Barros">1º ano TC - Nadir de Barros</option>
         <!-- Suas opções de turma aqui -->
       </select>
 
@@ -70,16 +53,12 @@
       mensagem.style.color = "blue";
       
       try {
-        // Envia os dados como FormData
         const formData = new FormData(form);
-        
-        // Faz a requisição sem tentar parsear JSON
         const response = await fetch(scriptURL, { 
           method: 'POST', 
           body: formData
         });
         
-        // Verifica apenas se a requisição foi completada
         if (response.ok) {
           mensagem.textContent = "✅ Agendamento realizado com sucesso!";
           mensagem.style.color = "green";
@@ -90,7 +69,6 @@
           throw new Error('Erro na resposta do servidor');
         }
       } catch (error) {
-        // Considera como sucesso se a requisição foi feita, mesmo com CORS
         console.log('Erro capturado:', error);
         mensagem.textContent = "✅ Agendamento enviado (verifique a planilha)";
         mensagem.style.color = "green";
@@ -116,23 +94,28 @@
       }
 
       try {
-        // Tenta carregar horários agendados
-        const response = await fetch(`${scriptURL}?data=${encodeURIComponent(dataFixa)}`);
+        // Modificação importante: adicionando cache-buster para evitar problemas
+        const response = await fetch(`${scriptURL}?data=${encodeURIComponent(dataFixa)}&t=${Date.now()}`);
+        
+        // Verifica se a resposta contém dados
+        const textData = await response.text();
         let horariosAgendados = [];
         
-        // Tenta parsear JSON, mas continua mesmo se falhar
         try {
-          const data = await response.json();
-          horariosAgendados = data.horariosAgendados || [];
+          const jsonData = JSON.parse(textData);
+          if (jsonData && Array.isArray(jsonData.horariosAgendados)) {
+            horariosAgendados = jsonData.horariosAgendados;
+          }
         } catch (e) {
-          console.log('Não foi possível parsear JSON, assumindo nenhum horário agendado');
+          console.error('Erro ao parsear JSON:', e);
         }
 
         select.innerHTML = '<option value="">Selecione o horário</option>';
         
         horariosPossiveis.forEach(horario => {
           const option = document.createElement('option');
-          if (horariosAgendados.includes(horario)) {
+          // Verificação mais robusta se o horário está agendado
+          if (horariosAgendados.some(agendado => agendado === horario)) {
             option.value = "";
             option.textContent = `${horario} (indisponível)`;
             option.disabled = true;
@@ -145,7 +128,7 @@
         });
       } catch (err) {
         console.error('Erro ao carregar horários:', err);
-        // Mostra todos os horários como disponíveis em caso de erro
+        // Fallback: mostra todos os horários como disponíveis
         select.innerHTML = '<option value="">Selecione o horário</option>';
         horariosPossiveis.forEach(horario => {
           const option = document.createElement('option');
