@@ -69,11 +69,12 @@
       const formData = new FormData(form);
       fetch(scriptURL, { method: 'POST', body: formData })
         .then(response => response.text())
-        .then(data => {
-          mensagem.textContent = data;
-          form.reset();
-          carregarHorarios(); // Atualiza a lista de horários após o envio
-        })
+       .then(data => {
+         mensagem.textContent = data;
+         form.reset();
+         carregarHorarios(); // <- chama novamente para atualizar os horários
+         })
+
         .catch(error => {
           mensagem.textContent = "Erro ao enviar agendamento.";
           console.error('Erro:', error);
