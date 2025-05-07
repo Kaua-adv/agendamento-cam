@@ -41,9 +41,9 @@
     button:hover {
       background-color: #45a049;
     }
-    .unavailable {
+    .disabled {
       text-decoration: line-through;
-      color: red;
+      color: #999;
     }
   </style>
 </head>
@@ -60,7 +60,7 @@
       <label for="turma">Turma:</label>
       <select id="turma" name="turma" required>
         <option value="">Selecione a turma</option>
-        <option value="Maternal MA - Marilene Soares da Silva Rosa">Maternal MA - Marilene Soares da Silva Rosa</option>
+      <option value="Maternal MA - Marilene Soares da Silva Rosa">Maternal MA - Marilene Soares da Silva Rosa</option>
         <option value="Maternal TA - Tatiane Maria Souza da Costa">Maternal TA - Tatiane Maria Souza da Costa</option>
         <option value="Pré 1 MA - Josiele da Costa de Souza">Pré 1 MA - Josiele da Costa de Souza</option>
         <option value="Pré 1 TA - Josiele da Costa de Souza">Pré 1 TA - Josiele da Costa de Souza</option>
@@ -92,50 +92,51 @@
   </div>
 
   <script>
+    // Função para adicionar horários no select
     function adicionarHorarios() {
       const select = document.getElementById('hora');
-      const horariosAgendados = [];
-      
-      // Recupera os horários já agendados usando o API do Apps Script
+      const times = [];
+      let hour = 7;
+      let minute = 10;
+
+      // Gera os horários de 10 em 10 minutos a partir de 07:10 até 10:50
+      while (hour < 11 || (hour === 10 && minute <= 50)) {
+        let hStr = hour.toString().padStart(2, '0');
+        let mStr = minute.toString().padStart(2, '0');
+        times.push(`${hStr}:${mStr}`);
+        minute += 10;
+        if (minute >= 60) {
+          minute = 0;
+          hour++;
+        }
+      }
+
+      // Adiciona as opções de horário no select
+      times.forEach(time => {
+        const option = document.createElement('option');
+        option.value = time;
+        option.textContent = time;
+        select.appendChild(option);
+      });
+
+      // Verifica quais horários já estão agendados
       fetch('https://script.google.com/macros/s/AKfycbxpiNzF9p6gWoYTPpAu9jGaM9UO0TPY7vON-lHxGnZibsyH4mK8LWuyZRktG1eaQNn09w/exec')
         .then(response => response.json())
         .then(data => {
-          horariosAgendados.push(...data); // Adiciona os horários agendados
-
-          let hour = 7;
-          let minute = 10;
-
-          // Gera os horários de 10 em 10 minutos
-          for (let i = 0; i < 18; i++) {
-            let hStr = hour.toString().padStart(2, '0');
-            let mStr = minute.toString().padStart(2, '0');
-            let time = `${hStr}:${mStr}`;
-
-            const option = document.createElement('option');
-            option.value = time;
-
-            // Verifica se o horário já está agendado
-            if (horariosAgendados.includes(time)) {
-              option.textContent = time;
-              option.classList.add('unavailable'); // Adiciona a classe de "riscar"
-            } else {
-              option.textContent = time;
+          const horariosAgendados = data;
+          // Marca os horários agendados como desativados
+          const options = select.querySelectorAll('option');
+          options.forEach(option => {
+            if (horariosAgendados.includes(option.value)) {
+              option.classList.add('disabled');
+              option.disabled = true;
             }
-
-            select.appendChild(option);
-
-            minute += 10;
-            if (minute >= 60) {
-              minute = 0;
-              hour++;
-            }
-          }
+          });
         })
-        .catch(error => {
-          console.error('Erro ao carregar os horários:', error);
-        });
+        .catch(error => console.error('Erro ao carregar horários:', error));
     }
 
+    // Chama a função para adicionar os horários assim que a página carregar
     window.onload = adicionarHorarios;
   </script>
 </body>
