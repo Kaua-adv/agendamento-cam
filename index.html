@@ -43,6 +43,7 @@
         <option value="1º ano TA - Eliane Silva dos Santos Cruz">1º ano TA - Eliane Silva dos Santos Cruz</option>
         <option value="1º ano TB - Leticia da Silva Pinheiro">1º ano TB - Leticia da Silva Pinheiro</option>
         <option value="1º ano TC - Nadir de Barros">1º ano TC - Nadir de Barros</option>
+        <!-- (demais opções aqui...) -->
       </select>
 
       <label for="data">Data da Reunião:</label>
@@ -59,22 +60,19 @@
   <script>
     const form = document.getElementById('formulario');
     const mensagem = document.getElementById('mensagem');
-
-    // URL do seu Apps Script
-    const scriptURL = "https://script.google.com/macros/s/AKfycbxooayKGHF2qFXwPqKShZs-ukugHs52OV1u0EbmyvOEL6_Y_9QX_DeBTVP2TlWVg7qb5g/exec";
+    const scriptURL = "https://script.google.com/macros/s/AKfycbzJ-ZYZgROVOPs-chY0Sr-_QJOD4fQXOxOUGLyJJlCf-E8DtqczICRmejndxfTY8b_dnA/exec";
 
     form.addEventListener('submit', e => {
       e.preventDefault();
-
       const formData = new FormData(form);
+
       fetch(scriptURL, { method: 'POST', body: formData })
         .then(response => response.text())
-       .then(data => {
-         mensagem.textContent = data;
-         form.reset();
-         carregarHorarios(); // <- chama novamente para atualizar os horários
-         })
-
+        .then(data => {
+          mensagem.textContent = data;
+          form.reset();
+          carregarHorarios(); // <- recarrega os horários após o envio
+        })
         .catch(error => {
           mensagem.textContent = "Erro ao enviar agendamento.";
           console.error('Erro:', error);
@@ -103,8 +101,6 @@
           if (agendados.includes(horario)) {
             option.textContent = horario + " (indisponível)";
             option.disabled = true;
-            option.style.textDecoration = "line-through";
-            option.style.color = "gray";
           } else {
             option.value = horario;
             option.textContent = horario;
@@ -113,7 +109,6 @@
         });
       } catch (err) {
         select.innerHTML = '<option>Erro ao carregar horários</option>';
-        console.error('Erro ao buscar horários:', err);
       }
     }
 
