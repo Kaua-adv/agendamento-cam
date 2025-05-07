@@ -88,15 +88,14 @@
   </div>
 
   <script>
-    // Função para adicionar horários no select
+    // Gera opções de horário de 10 em 10 minutos entre 07:10 e 10:50
     function adicionarHorarios() {
       const select = document.getElementById('hora');
       const times = [];
       let hour = 7;
       let minute = 10;
 
-      // Gera os horários de 10 em 10 minutos a partir de 07:10 até 10:50
-      while (hour < 11 || (hour === 10 && minute <= 50)) {
+      while ((hour < 10) || (hour === 10 && minute <= 50)) {
         let hStr = hour.toString().padStart(2, '0');
         let mStr = minute.toString().padStart(2, '0');
         times.push(`${hStr}:${mStr}`);
@@ -107,7 +106,6 @@
         }
       }
 
-      // Adiciona as opções de horário no select
       times.forEach(time => {
         const option = document.createElement('option');
         option.value = time;
@@ -116,7 +114,6 @@
       });
     }
 
-    // Chama a função para adicionar os horários assim que a página carregar
     window.onload = adicionarHorarios;
   </script>
 </body>
