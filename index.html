@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Agendamento de Reunião com Pais</title>
   <style>
     body {
@@ -46,12 +46,12 @@
 <body>
   <div class="container">
     <h2>Agende Sua Reunião</h2>
-    <form id="agendamentoForm" action="https://script.google.com/macros/s/AKfycbyScvkqWmZa7fDVXqxuUX-pqNL5WHR1LM31vKIMRIZaHziM6TdKBIhMuu8F3sTqwxvJJA/exec" method="POST">
+    <form action="https://script.google.com/macros/s/AKfycbxpiNzF9p6gWoYTPpAu9jGaM9UO0TPY7vON-lHxGnZibsyH4mK8LWuyZRktG1eaQNn09w/exec" method="POST">
       <label for="nome">Nome do Responsável:</label>
-      <input type="text" id="nome" name="nome" required>
+      <input type="text" id="nome" name="nome" required />
 
       <label for="aluno">Nome do Aluno:</label>
-      <input type="text" id="aluno" name="aluno" required>
+      <input type="text" id="aluno" name="aluno" required />
 
       <label for="turma">Turma:</label>
       <select id="turma" name="turma" required>
@@ -76,11 +76,11 @@
       </select>
 
       <label for="data">Data da Reunião:</label>
-      <input type="text" id="data" name="data" value="14/05/2025" readonly>
+      <input type="text" id="data" name="data" value="14/05/2025" readonly />
 
       <label for="hora">Horário preferido:</label>
       <select id="hora" name="hora" required>
-        <option value="">Selecione o horário</option>
+        <option value="">Carregando horários disponíveis...</option>
       </select>
 
       <button type="submit">Enviar Agendamento</button>
@@ -88,18 +88,17 @@
   </div>
 
   <script>
-    // Função para adicionar horários no select
-    function adicionarHorarios() {
+    async function adicionarHorarios() {
       const select = document.getElementById('hora');
-      const times = [];
+      select.innerHTML = ''; // limpa o select
+      const horariosTotais = [];
       let hour = 7;
       let minute = 10;
 
-      // Gera os horários de 10 em 10 minutos a partir de 07:10 até 10:50
       while (hour < 11 || (hour === 10 && minute <= 50)) {
         let hStr = hour.toString().padStart(2, '0');
         let mStr = minute.toString().padStart(2, '0');
-        times.push(`${hStr}:${mStr}`);
+        horariosTotais.push(`${hStr}:${mStr}`);
         minute += 10;
         if (minute >= 60) {
           minute = 0;
@@ -107,40 +106,35 @@
         }
       }
 
-      // Adiciona as opções de horário no select
-      times.forEach(time => {
-        const option = document.createElement('option');
-        option.value = time;
-        option.textContent = time;
-        select.appendChild(option);
-      });
+      try {
+        const response = await fetch('https://script.google.com/macros/s/AKfycbxpiNzF9p6gWoYTPpAu9jGaM9UO0TPY7vON-lHxGnZibsyH4mK8LWuyZRktG1eaQNn09w/exec');
+        const ocupados = await response.json();
+
+        const disponiveis = horariosTotais.filter(h => !ocupados.includes(h));
+        if (disponiveis.length === 0) {
+          const opt = document.createElement('option');
+          opt.value = "";
+          opt.textContent = "Todos os horários estão ocupados.";
+          select.appendChild(opt);
+        } else {
+          select.appendChild(new Option("Selecione o horário", ""));
+          disponiveis.forEach(h => {
+            const opt = document.createElement('option');
+            opt.value = h;
+            opt.textContent = h;
+            select.appendChild(opt);
+          });
+        }
+      } catch (error) {
+        console.error("Erro ao carregar horários disponíveis:", error);
+        const opt = document.createElement('option');
+        opt.value = "";
+        opt.textContent = "Erro ao carregar horários.";
+        select.appendChild(opt);
+      }
     }
 
-    // Função para buscar horários agendados e removê-los do seletor
-    function buscarHorariosAgendados() {
-      fetch('https://script.google.com/macros/s/AKfycbyScvkqWmZa7fDVXqxuUX-pqNL5WHR1LM31vKIMRIZaHziM6TdKBIhMuu8F3sTqwxvJJA/exec')
-        .then(response => response.json())
-        .then(data => {
-          const select = document.getElementById('hora');
-          const options = select.getElementsByTagName('option');
-
-          // Remove as opções de horários já agendados
-          for (let i = options.length - 1; i >= 0; i--) {
-            for (let j = 0; j < data.length; j++) {
-              if (options[i].value === data[j].hora && data[j].data === "14/05/2025") {
-                select.removeChild(options[i]);
-              }
-            }
-          }
-        })
-        .catch(error => console.error('Erro ao buscar horários:', error));
-    }
-
-    // Chama as funções quando a página carregar
-    window.onload = () => {
-      adicionarHorarios();
-      buscarHorariosAgendados();
-    };
+    window.onload = adicionarHorarios;
   </script>
 </body>
 </html>
