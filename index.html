@@ -50,7 +50,7 @@
 <body>
   <div class="container">
     <h2>Agende Sua Reunião</h2>
-    <form action="https://script.google.com/macros/s/AKfycbxpiNzF9p6gWoYTPpAu9jGaM9UO0TPY7vON-lHxGnZibsyH4mK8LWuyZRktG1eaQNn09w/exec" method="POST">
+    <form action="https://script.google.com/macros/s/AKfycbzJ-ZYZgROVOPs-chY0Sr-_QJOD4fQXOxOUGLyJJlCf-E8DtqczICRmejndxfTY8b_dnA/exec">
       <label for="nome">Nome do Responsável:</label>
       <input type="text" id="nome" name="nome" required>
 
@@ -120,7 +120,7 @@
       });
 
       // Verifica quais horários já estão agendados
-      fetch('https://script.google.com/macros/s/AKfycbxpiNzF9p6gWoYTPpAu9jGaM9UO0TPY7vON-lHxGnZibsyH4mK8LWuyZRktG1eaQNn09w/exec')
+      fetch('https://script.google.com/macros/s/AKfycbzJ-ZYZgROVOPs-chY0Sr-_QJOD4fQXOxOUGLyJJlCf-E8DtqczICRmejndxfTY8b_dnA/exec')
         .then(response => response.json())
         .then(data => {
           const horariosAgendados = data;
