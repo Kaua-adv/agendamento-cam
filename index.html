@@ -89,6 +89,12 @@
             margin-top: 20px;
             text-align: center;
         }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
@@ -132,17 +138,20 @@
             
             <div class="form-group">
                 <label for="horario">Horário:</label>
-                <select id="horario" name="horario" required>
-                    <option value="">Selecione um horário...</option>
-                    <!-- Horários serão preenchidos por JavaScript -->
+                <select id="horario" name="horario" required disabled>
+                    <option value="">Primeiro selecione uma turma</option>
                 </select>
             </div>
             
-            <button type="submit">Agendar</button>
+            <div class="loading" id="loadingIndicator">
+                Carregando horários disponíveis...
+            </div>
+            
+            <button type="submit" id="submitButton">Agendar</button>
         </form>
         
         <div id="successMessage" class="success-message">
-            Agendamento realizado com sucesso!
+            Agendamento realizado com sucesso! Um e-mail de confirmação foi enviado.
         </div>
         
         <div id="errorMessage" class="error-message">
@@ -151,37 +160,115 @@
     </div>
 
     <script>
-        // Preencher os horários disponíveis
+        // URL do seu Google Apps Script (substitua pelo seu)
+        const SCRIPT_URL = 'SUA_URL_DO_APPS_SCRIPT_AQUI';
+        
         document.addEventListener('DOMContentLoaded', function() {
+            const turmaSelect = document.getElementById('turma');
             const horarioSelect = document.getElementById('horario');
-            const startHour = 7;
-            const startMinute = 10;
-            const endHour = 10;
-            const endMinute = 50;
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const submitButton = document.getElementById('submitButton');
             
-            let currentHour = startHour;
-            let currentMinute = startMinute;
+            // Gerar todos os horários possíveis
+            function gerarTodosHorarios() {
+                const horarios = [];
+                const startHour = 7;
+                const startMinute = 10;
+                const endHour = 10;
+                const endMinute = 50;
+                
+                let currentHour = startHour;
+                let currentMinute = startMinute;
+                
+                while (currentHour < endHour || (currentHour === endHour && currentMinute <= endMinute)) {
+                    const horaFormatada = currentHour.toString().padStart(2, '0');
+                    const minutoFormatado = currentMinute.toString().padStart(2, '0');
+                    horarios.push(`${horaFormatada}:${minutoFormatado}`);
+                    
+                    currentMinute += 10;
+                    if (currentMinute >= 60) {
+                        currentMinute -= 60;
+                        currentHour += 1;
+                    }
+                }
+                
+                return horarios;
+            }
             
-            while (currentHour < endHour || (currentHour === endHour && currentMinute <= endMinute)) {
-                const horaFormatada = currentHour.toString().padStart(2, '0');
-                const minutoFormatado = currentMinute.toString().padStart(2, '0');
-                const horario = `${horaFormatada}:${minutoFormatado}`;
-                
-                const option = document.createElement('option');
-                option.value = horario;
-                option.textContent = horario;
-                horarioSelect.appendChild(option);
-                
-                // Incrementar 10 minutos
-                currentMinute += 10;
-                if (currentMinute >= 60) {
-                    currentMinute -= 60;
-                    currentHour += 1;
+            // Carregar horários ocupados da planilha
+            async function carregarHorariosOcupados() {
+                try {
+                    loadingIndicator.style.display = 'block';
+                    const response = await fetch(`${SCRIPT_URL}?action=getHorarios`);
+                    const data = await response.json();
+                    loadingIndicator.style.display = 'none';
+                    return data;
+                } catch (error) {
+                    console.error('Erro ao carregar horários:', error);
+                    loadingIndicator.style.display = 'none';
+                    return {};
                 }
             }
             
+            // Atualizar os horários disponíveis quando a turma é selecionada
+            async function atualizarHorariosDisponiveis() {
+                const turmaSelecionada = turmaSelect.value;
+                if (!turmaSelecionada) {
+                    horarioSelect.innerHTML = '<option value="">Primeiro selecione uma turma</option>';
+                    horarioSelect.disabled = true;
+                    return;
+                }
+                
+                submitButton.disabled = true;
+                horarioSelect.disabled = true;
+                horarioSelect.innerHTML = '<option value="">Carregando horários...</option>';
+                
+                const [todasTurmas, horariosOcupados] = await Promise.all([
+                    gerarTodosHorarios(),
+                    carregarHorariosOcupados()
+                ]);
+                
+                // Limpar select de horários
+                horarioSelect.innerHTML = '';
+                
+                // Obter horários ocupados para a turma selecionada
+                const ocupadosParaTurma = horariosOcupados[turmaSelecionada] || [];
+                
+                // Adicionar apenas horários disponíveis
+                todasTurmas.forEach(horario => {
+                    if (!ocupadosParaTurma.includes(horario)) {
+                        const option = document.createElement('option');
+                        option.value = horario;
+                        option.textContent = horario;
+                        horarioSelect.appendChild(option);
+                    }
+                });
+                
+                if (horarioSelect.options.length === 0) {
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'Nenhum horário disponível para esta turma';
+                    option.disabled = true;
+                    horarioSelect.appendChild(option);
+                    submitButton.disabled = true;
+                } else {
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.textContent = 'Selecione um horário...';
+                    defaultOption.disabled = true;
+                    defaultOption.selected = true;
+                    horarioSelect.insertBefore(defaultOption, horarioSelect.firstChild);
+                    submitButton.disabled = false;
+                }
+                
+                horarioSelect.disabled = false;
+            }
+            
+            // Event listener para mudança de turma
+            turmaSelect.addEventListener('change', atualizarHorariosDisponiveis);
+            
             // Configurar o envio do formulário
-            document.getElementById('agendamentoForm').addEventListener('submit', function(e) {
+            document.getElementById('agendamentoForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
                 const formData = {
@@ -189,33 +276,45 @@
                     aluno: document.getElementById('aluno').value,
                     turma: document.getElementById('turma').value,
                     horario: document.getElementById('horario').value,
-                    data: new Date().toLocaleString()
+                    data: new Date().toLocaleString('pt-BR')
                 };
                 
-                // Enviar dados para o Google Apps Script
-                fetch('SEU_SCRIPT_DO_APPS_SCRIPT_URL', {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData)
-                })
-                .then(() => {
+                submitButton.disabled = true;
+                submitButton.textContent = 'Enviando...';
+                
+                try {
+                    const response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(formData)
+                    });
+                    
+                    if (!response.ok) throw new Error('Erro na resposta');
+                    
                     document.getElementById('successMessage').style.display = 'block';
                     document.getElementById('errorMessage').style.display = 'none';
                     document.getElementById('agendamentoForm').reset();
+                    
                     setTimeout(() => {
                         document.getElementById('successMessage').style.display = 'none';
                     }, 5000);
-                })
-                .catch(() => {
+                    
+                    // Atualizar horários disponíveis após agendamento
+                    await atualizarHorariosDisponiveis();
+                } catch (error) {
+                    console.error('Erro:', error);
                     document.getElementById('errorMessage').style.display = 'block';
                     document.getElementById('successMessage').style.display = 'none';
+                    
                     setTimeout(() => {
                         document.getElementById('errorMessage').style.display = 'none';
                     }, 5000);
-                });
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Agendar';
+                }
             });
         });
     </script>
